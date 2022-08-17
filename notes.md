@@ -96,3 +96,26 @@ typedef void(*Func)(void)的应用
 /opt/ros/foxy/share/std_msgs
 
 /opt/ros/foxy/share/builtin_interfaces
+
+
+
+# cmake .. -DCMAKE_PREFIX_PATH=/usr/local/
+
+
+
+# 共享盘
+
+```
+smb//:192.168.1.44
+
+name: admin
+
+password: linearx
+```
+
+
+
+
+
+
+

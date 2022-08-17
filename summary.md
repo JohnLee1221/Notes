@@ -1,4 +1,4 @@
-# CMakeLists.txt
+#       CMakeLists.txt
 
 ## 常用命令
 
@@ -85,6 +85,36 @@ TARGET_LINK_LIBRARIES(demo ${DEMO_LIB})#把目标文件与库文件进行链接
 AUX_SOURCE_DIRECTORY(${PROJECT_SOOURCE_DIR}/ SRC_LIST}#搜索项目主目录下的所有源文件
 
 ADD_EXECUTABLE(demo ${SRC_LIST})
+
+### FIND_PACKAGE()
+
+```
+find_package(<PackageName> [version] [EXACT] [QUIET] [MODULE]
+             [REQUIRED] [[COMPONENTS] [components...]]
+             [OPTIONAL_COMPONENTS components...]
+             [NO_POLICY_SCOPE])
+```
+
+```
+cmake_minimum_required(VERSION 2.8)
+
+project(helloworld)
+add_executable(helloworld hello.c)
+
+# 查找BZip2库
+find_package (BZip2)
+
+if (BZIP2_FOUND)
+
+  # 添加头文件路径
+  include_directories(${BZIP_INCLUDE_DIRS})
+  
+  # 为helloworld 添加库文件
+  target_link_libraries (helloworld ${BZIP2_LIBRARIES})
+endif (BZIP2_FOUND)
+```
+
+
 
 ------
 
@@ -234,6 +264,47 @@ endforeach(loop_var)
 
 
 
+# cmake
+
+## CMAKE_PREFIX_PATH
+
+`CMAKE_PREFIX_PATH`是一个分号分隔的路径列表，用来指明软件/库安装路径前缀，以供`find_package()`，`find_program()`，`find_library()`，`find_file()`和`find_path()`命令搜索使用，这样就方便搜索可执行文件、头文件及库文件等。初始为空，由用户设定。
+
+
+
+cmake .. -DCMAKE_PREFIX_PATH=/usr/local/lib
+
+
+
+或者在CMakeLists.txt中：
+
+list(APPEND CMAKE_PREFIX_PATH "/usr/local/lib")
+
+
+
+## CMAKE_MODULE_PATH
+
+`CMAKE_MODULE_PATH`是以分号分隔的列表，供`include()`或 `find_package()`使用。初始为空，由用户设定。
+
+
+
+## CMAKE_INSTALL_PREFIX
+
+```bash
+cmake -DCMAKE_INSTALL_PREFIX=/usr ..
+```
+
+
+
+修改cmake文件，加入：
+
+```sql
+SET(CMAKE_INSTALL_PREFIX /usr/local)
+INSTALL(TARGETS demo DESTINATION bin)		#将demo安装在/usr/local/bin目录下
+```
+
+
+
 # package.xml
 
 ## 定义
@@ -246,7 +317,7 @@ package.xml文件定义了package的属性。（例如：包名，版本号，�
 
 ## 释义
 
-![img](https://cdn.nlark.com/yuque/0/2022/png/29669599/1658370517969-40b4431e-aa29-4f4d-a356-5ef39ef24b0b.png)
+​    b8u yuytvh m opgc ytyt gd gceuyx yst xety                                    
 
 ## 模板
 
@@ -335,3 +406,26 @@ git add
 git commit -m ""
 
 git 
+
+
+
+
+
+
+
+
+
+# rclcpp
+
+## create_wall_timer()
+
+```
+typename rclcpp::WallTimer<CallbackT>::SharedPtr
+create_wall_timer(
+  std::chrono::duration<DurationRepT, DurationT> period,					//设置timer的时间间隔
+  CallbackT callback,														//回调函数
+  rclcpp::CallbackGroup::SharedPtr group,									//执行此他的回调
+  node_interfaces::NodeBaseInterface * node_base,
+  node_interfaces::NodeTimersInterface * node_timers)
+```
+
