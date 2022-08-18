@@ -88,35 +88,112 @@ ADD_EXECUTABLE(demo ${SRC_LIST})
 
 ### FIND_PACKAGE()
 
-```
+```cmake
 find_package(<PackageName> [version] [EXACT] [QUIET] [MODULE]
              [REQUIRED] [[COMPONENTS] [components...]]
              [OPTIONAL_COMPONENTS components...]
              [NO_POLICY_SCOPE])
 ```
 
-```
-cmake_minimum_required(VERSION 2.8)
-
-project(helloworld)
-add_executable(helloworld hello.c)
-
-# 查找BZip2库
-find_package (BZip2)
-
-if (BZIP2_FOUND)
-
-  # 添加头文件路径
-  include_directories(${BZIP_INCLUDE_DIRS})
-  
-  # 为helloworld 添加库文件
-  target_link_libraries (helloworld ${BZIP2_LIBRARIES})
-endif (BZIP2_FOUND)
+```cmake
+# 查找CURL库
+find_package(CURL)
+add_executable(curltest curltest.cc)
+if(CURL_FOUND)
+    target_include_directories(clib PRIVATE ${CURL_INCLUDE_DIR})
+    target_link_libraries(curltest ${CURL_LIBRARY})
+else(CURL_FOUND)
+    message(FATAL_ERROR ”CURL library not found”)
+endif(CURL_FOUND)
 ```
 
+对于系统预定义的 `Find<LibaryName>.cmake` 模块，使用方法一般如上例所示。
 
+每一个模块都会定义以下几个变量 
+
+```
+<LibaryName>_FOUND
+<LibaryName>_INCLUDE_DIR or <LibaryName>_INCLUDES
+<LibaryName>_LIBRARY or <LibaryName>_LIBRARIES
+```
+
+你可以通过`<LibaryName>_FOUND` 来判断模块是否被找到，如果没有找到，按照工程的需要关闭 某些特性、给出提醒或者中止编译，上面的例子就是报出致命错误并终止构建。 如果`<LibaryName>_FOUND` 为真，则将`<LibaryName>_INCLUDE_DIR` 加入 INCLUDE_DIRECTORIES
+
+
+
+
+
+```cmake
+cmake_minimum_required(VERSION 3.5)
+project(arm_core)
+
+set(BUILD_TEST TRUE)
+set(LIB_NAME libarmcore)
+
+# Default to C99
+if(NOT CMAKE_C_STANDARD)
+  set(CMAKE_C_STANDARD 99)
+endif()
+
+# Default to C++14
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 14)
+endif()
+
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
+
+# find dependencies
+find_package(yaml-cpp REQUIRED)
+find_package(spdlog REQUIRED)
+
+include_directories(
+  include/
+)
+
+add_library(libarmcore SHARED
+   #pose
+   src/pose/Pose.cpp
+)
+
+target_link_libraries(libarmcore
+  jsoncpp
+  yaml-cpp
+  spdlog
+)
+
+install(
+  DIRECTORY include/
+  DESTINATION include
+)
+
+install(
+  TARGETS libarmcore
+  EXPORT libarmcore
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+  RUNTIME DESTINATION bin
+  INCLUDES DESTINATION include
+)
+
+# add lib.config
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+        libarmcoreConfig.cmake
+        VERSION 1.0
+        COMPATIBILITY AnyNewerVersion 
+        )
+
+install(EXPORT libarmcore
+        FILE libarmcoreConfig.cmake
+        DESTINATION lib/cmake/libarmcore
+        )
+```
 
 ------
+
+
 
 
 

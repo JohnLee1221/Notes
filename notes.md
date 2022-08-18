@@ -119,3 +119,23 @@ password: linearx
 
 
 
+
+
+required from ‘bool std::any_of(_IIter, _IIter, _Predicate) [with _IIter = __gnu_cxx::__normal_iterator<const rclcpp::wait_set_policies::DynamicStorage::WeakWaitableEntry*, std::vector<rclcpp::wait_set_policies::DynamicStorage::WeakWaitableEntry> >; _Predicate = rclcpp::wait_set_policies::DynamicStorage::storage_has_entity(const EntityT&, const SequenceOfEntitiesT&) [with EntityT = rclcpp::Waitable; SequenceOfEntitiesT = std::vector<rclcpp::wait_set_policies::DynamicStorage::WeakWaitableEntry>]::<lambda(const int&)>]’
+/opt/ros/foxy/include/rclcpp/wait_set_policies/dynamic_storage.hpp:223:23:   required from ‘static bool rclcpp::wait_set_policies::DynamicStorage::storage_has_entity(const EntityT&, const SequenceOfEntitiesT&) [with EntityT = rclcpp::Waitable; SequenceOfEntitiesT = std::vector<rclcpp::wait_set_policies::DynamicStorage::WeakWaitableEntry>]’
+/opt/ros/foxy/include/rclcpp/wait_set_policies/dynamic_storage.hpp:351:55:   required from here
+/usr/include/c++/9/bits/predefined_ops.h:283:11: error: no match for call to ‘(rclcpp::wait_set_policies::DynamicStorage::storage_has_entity(const EntityT&, const SequenceOfEntitiesT&) [with EntityT = rclcpp::Waitable; SequenceOfEntitiesT = std::vector<rclcpp::wait_set_policies::DynamicStorage::WeakWaitableEntry>]::<lambda(const int&)>) (const rclcpp::wait_set_policies::DynamicStorage::WeakWaitableEntry&)’
+  283 |  { return bool(_M_pred(*__it)); }
+
+
+
+\# Default to C++14
+
+if(NOT CMAKE_CXX_STANDARD)
+
+  set(CMAKE_CXX_STANDARD 14)
+
+endif()
+
+
+
