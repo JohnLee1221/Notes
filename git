@@ -1,5 +1,0 @@
-git reset --hard "commit_ID"
-git clean -xdf
-
-git checkout -b "123"
-git push --set-upstream origin "123"
