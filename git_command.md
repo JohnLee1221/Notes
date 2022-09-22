@@ -21,6 +21,8 @@ git checkout <file_name>
 //清空暂存区，将已提交的内容的版本恢复到本地，本地的文件也将被恢复的版本替换（恢复到上一次 commit 后的状态，上一次 commit 后的修改也丢弃）
 git reset --hard "commit_ID"
 
+git remote show origin	//查看远程分支的更新状态
+
 git clean -xdf
 
 git checkout -b "123"
@@ -32,13 +34,14 @@ git push --set-upstream origin "123"
 
 
 
-## branch相关命令
+## branch
 
 ```sh
 查看分支
 git branch 							//查看本地分支
 git branch -r 						//查看远程分支
 git branch -a 						//查看所有分支，包括本地和远程的分支
+git branch -d						//删除分子
 
 2）切换分支
 git checkout dev 					//切换到dev分支上
@@ -66,11 +69,52 @@ git log --graph						//查看历史提交记录
 
 
 
+## git push
+
+```shell
+git push											//默认推送到远程master分支上
+git push origin <branch-name>:<remote-branch-name>	//推送本地指定分支到远程指定分支上
+git push --set-upstream origin <remote-branch-name>	//推送并绑定，以后就可以直接git push
+```
+
+
+
+## git fetch	git pull
+
+```shell
+//git fetch
+
+//git fetch只会更新本地远程分支，不会更新本地分支
+git fetch (origin)							//远程主机的更新全部拉取到本地
+git fetch origin <remote-branch-name>		//拉取远程特定分支
+//git log里没有origin/master，origin/HEAD，是因为origin/master分支有更新，fetch后本地远程分支状态超前于本地分支，所以无法显示
+git merge origin/master		//fetch的远程分支和本地合并
+```
+
+
+
+```shell
+//git pull
+
+//git pull = git fetch + git merge
+git pull <远程主机名> <远程分支名>:<本地分支名>
+git pull				//远程分支与当前分支拉取并合并
+git pull origin			
+//git pull会将本地更新覆盖掉，使用时候注意git pull 和 git fetch的使用情况
+
+git pull origin master:brantest	//将远程主机 origin 的 master 分支拉取过来，与本地的 brantest 分支合并
+git pull origin master			//远程分支是与当前分支合并，则冒号后面的部分可以省略
+```
+
+
+
+
+
 
 
 ## 同步远程分支代码到本地的命令
 
-```delphi
+```shell
 //git pull
 git pull origin master							//获取下来直接自动合并，不安全
 
