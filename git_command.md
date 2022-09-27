@@ -108,3 +108,74 @@ git status
 git mergetool 文件名
 ```
 
+
+
+
+
+### error: unable to create file xxx: Filename too long
+
+在该 Clone 的路径下，运行该命令：
+
+```
+git config --global core.longpaths true
+```
+
+删除老的 Clone 项目，重新 Clone 即可！
+
+
+
+
+
+
+
+
+
+
+
+场景：
+
+拉取一个repository，在test分支基础上，本地新建一个dev分支，并远程新建dev分支，推送本地代码
+
+```shell
+git clone .......				//克隆代码
+git checkout origin/test		//切换到远程的test分支
+git chechout -b dev				//本地新建一个dev分支，并切换到本地dev
+git push origin dev				//远程创建分支dev，并把当前dev分支推送到origin/dev分支上
+```
+
+
+
+1.查看最后一次提交记录的修改文件信息
+
+ git show --raw
+
+2.查看指定commit id对应修改文件列表
+
+git show --raw commit_id
+
+git show --raw 2f80f1c8bb2cb8e91d22ad38480b681c194f6518
+
+3.查看所有提交记录的修改文件信息
+
+git log --stat
+
+git log --name-only
+
+4.查看所有修改相关的commit ID和comment信息
+
+git log --pretty=oneline
+
+5.查询指定author的修改信息
+
+git log --author=jack.li
+
+6.查看指定author在指定时间修改信息
+
+$ git log --pretty="%h - %s" --author='Junio C Hamano' --since="2008-10-01" \
+   --before="2008-11-01" --no-merges -- t/
+5610e3b - Fix testcase failure when extended attributes are in use
+acd3b9e - Enhance hold_lock_file_for_{update,append}() API
+f563754 - demonstrate breakage of detached checkout with symbolic link HEAD
+d1a43f2 - reset --hard/read-tree --reset -u: remove unmerged new paths
+51a94af - Fix "checkout --track -b newbranch" on detached HEAD
+b0ad11e - pull: allow "git pull origin $something:$current_branch" into an unborn branch

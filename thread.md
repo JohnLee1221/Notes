@@ -13,8 +13,6 @@ include <thread>
 
 
 
-
-
 ## 构造函数
 
 ```c++
@@ -39,16 +37,16 @@ thread( const thread& ) = delete;
 ## 成员函数
 
 ```c++
-//get_id()
+//get_id()		获得线程id
 std::thread::id get_id() const noexcept;
 
-//join()
+//join()		字面意思是连接一个线程，意味着主动地等待线程的终止（线程阻塞）
 void join();
 
-//detach()
+//detach()		线程分离
 void detach();
 
-//joinable()
+//joinable()	函数用于判断主线程和子线程是否处理关联（连接）状态
 bool joinable() const noexcept;
 
 //operator=
@@ -57,8 +55,6 @@ thread& operator= (thread&& other) noexcept;
 // copy [deleted] (2)	
 thread& operator= (const other&) = delete;
 ```
-
-
 
 
 
@@ -75,8 +71,8 @@ thread t2;
 t2 = thread(func2);
 
 //成员函数
-t1.get_id();
-t1.join();
+t1.get_id();			
+t1.join();				
 t1.detach();
 t1.joinable();
 
@@ -84,11 +80,11 @@ t1.joinable();
 cout<<"CPU number: "<<thread::hardware_concurrency()<<endl;
 ```
 
-
-
 https://subingwen.cn/cpp/thread/
 
 ------
+
+
 
 
 
