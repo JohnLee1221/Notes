@@ -23,7 +23,9 @@ git reset --hard "commit_ID"
 
 git remote show origin	//查看远程分支的更新状态
 
-git clean -xdf
+git restore .			//恢复modified的内容
+
+git clean -xdf			//清除untracked files
 
 git checkout -b "123"
 
