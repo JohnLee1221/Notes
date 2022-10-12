@@ -48,10 +48,17 @@ git branch -d						//删除分子
 2）切换分支
 git checkout dev 					//切换到dev分支上
 
+如果要切换到远程 remotes/origin/dev 分支
+git checkout remotes/origin/dev		//远程分支路径得写全，不可直接 git checkout origin/dev	
+
+
+
 3）创建分支
 git checkout dev					//在当前分支上创建dev分支
 git checkout -b dev					//在当前的分支上新创建的dev分支并切换到新的创建的dev分支上
+git checkout -b dev origin/version		//在origin/version上新建dev分支，并切换到dev分支上
 git push origin dev					//创建远程dev分支，本地dev分支必须存在
+
 
 4）查看分支是从哪个分支上创建的
 git reflog --date=local --all | grep dev	//查看在dev分支上的操作

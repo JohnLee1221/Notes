@@ -121,6 +121,16 @@ endif(CURL_FOUND)
 
 
 
+```
+install (
+
+  TARGETS hello_world_service hello_world_client
+
+  RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT bin
+
+)
+```
+
 
 
 ```cmake
