@@ -21,11 +21,13 @@ git checkout <file_name>
 //清空暂存区，将已提交的内容的版本恢复到本地，本地的文件也将被恢复的版本替换（恢复到上一次 commit 后的状态，上一次 commit 后的修改也丢弃）
 git reset --hard "commit_ID"
 
-git remote show origin	//查看远程分支的更新状态
+git reset --hard HEAD 		//表示回退到当前版本，HEAD指向当前版本
 
-git restore .			//恢复modified的内容
+git remote show origin		//查看远程分支的更新状态
 
-git clean -xdf			//清除untracked files
+git restore .				//恢复modified的内容
+
+git clean -xdf				//清除untracked files
 
 git checkout -b "123"
 
@@ -69,7 +71,7 @@ git branch -d dev					//删除本地dev分支
 git push origin --delete dev		//删除远程dev分支
 
 6）分支的合并merge
-git merge dev						//将dev分支合并到当前分支（一般是master主分支）
+git merge dev						//将dev分支合并到当前分支（一般是master主分支）or	
 git push							//将当前分支代码push到远程分支上
 
 7)查看commit记录
