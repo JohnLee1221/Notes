@@ -1,5 +1,3 @@
-
-
 # C++ daliy notes
 
 
@@ -158,7 +156,7 @@ int main()
 
 ### 3.2 特性
 
-1. **静态成员为所有类对象所共享，不属于某个具体的实例**
+1. **静态成员为所有类对象所共享，不属于某个具体的实例** 
 
 2. **静态成员变量必须在类外定义，定义时不添加static关键字**
 3. **静态成员函数没有隐藏的this指针，不能访问任何非静态成员**
@@ -411,7 +409,7 @@ int main()
 
 ## 8 setw()	setfill()
 
-### 
+
 
 ```c++
 cout<<right<<setfill('')<<setw(7)的解释：
@@ -425,6 +423,10 @@ setfill是设置填充填充字符，setw设置输出的宽度，它们的抄只
 4, 右对齐的方式输出7位的A,不足7位用*补齐，再输出B。结果：******AB
 
 ******************************
+
+
+
+
 
 
 
@@ -1611,4 +1613,577 @@ int main(void)
 //关闭RVO
 g++ test.cpp -o test -fno-elide-constructors
 ```
+
+
+
+
+
+
+
+## 18 std::move	std::forward
+
+
+
+### 18.1 std::move
+
+使用std::move方法可以将左值转换为右值，不是移动，而是和移动构造有相同的语义，将对象的状态或者所以权从一个对象转移到另一个对象上，只是转移，没有内存拷贝
+
+
+
+**函数原型**
+
+```
+template<class _Ty> 
+_NODISCARD constexpr remove_reference_t<_Ty>&& move(_Ty&& _Arg) _NOEXCEPT
+{	// forward _Arg as movable
+    return (static_cast<remove_reference_t<_Ty>&&>(_Arg));
+}
+```
+
+
+
+```c++
+class Test
+{
+public：
+    Test(){}
+    ......
+}
+int main()
+{
+    Test t;
+    Test && v1 = t;          // error
+    Test && v2 = move(t);    // ok
+    return 0;
+}
+```
+
+
+
+**作用**
+
+1. *给一个右值引用的对象初始化*
+2. *移动构造接管源对象，既不会产生额外的拷贝开销，也不会给新对象分配内存空间。提高程序的执行效率，节省内存消耗。*
+3. *移动构造函数的第一个参数必须是自身类型的右值引用*
+
+
+
+### 18.2 std::forward
+
+右值引用类型是独立于值的，一个右值引用作为函数参数的形参时，在函数内部转发该参数给内部其他函数时，它就变成一个左值，并不是原来的类型了。如果需要按照参数原来的类型转发到另一个函数，可以使用 C++11 提供的 std::forward () 函数，该函数实现的功能称之为完美转发。
+
+
+
+
+```c++
+// 函数原型
+template <class T> T&& forward (typename remove_reference<T>::type& t) noexcept;
+template <class T> T&& forward (typename remove_reference<T>::type&& t) noexcept;
+
+// 精简之后的样子
+std::forward<T>(t);
+```
+
+
+
+```c++
+#include <iostream>
+using namespace std;
+
+class Person
+{
+
+public:
+    string m_name;
+    int m_age;
+};
+
+int main()
+{
+    Person p1{"Jerry",20};
+    //forward模板参数类型为左值引用的时候，生成的是左值
+    //Person && p2 = std::forward<Person &> (p1);
+
+    //forward模板参数类型为非左值引用时，生成的是右值
+    Person && p3 = std::forward<Person> (p1);
+    Person && p4 = std::forward<Person &&> (p1);
+    Person & p5 = std::forward<Person &> (p1);
+
+    return 0;
+}
+```
+
+* 当T为**左值引用**类型时，t将被转换成T类型的**左值**
+* 当T为**非左值引用**类型时，t将被转换成T类型的**右值**
+
+
+
+
+
+## 19 shared_ptr	unique_ptr	weak_ptr
+
+智能指针是存储指向***动态分配（堆）对象指针的类***，用于生存期的控制，能够确保在离开指针所在作用域时，自动地销毁动态分配的对象，防止内存泄露。智能指针的核心实现技术是引用计数，每使用它一次，内部引用计数加1，每析构一次内部的引用计数减1，减为0时，删除所指向的堆内存。
+
+**特点**
+
+* **指向并管理的是堆区的资源**
+* **本身是一个类模板**
+* **内部引用计数**
+
+
+
+### 19.1 shared_ptr
+
+是指多个共享指针可以同时管理同一块内存资源，shared_ptr是一个模板类
+
+重载操作符 * 和 ->
+
+
+
+#### 19.1.1 **初始化方式**
+
+
+
+1. **通过构造函数初始化**
+
+   ```c++
+   // shared_ptr<T> 类模板中，提供了多种实用的构造函数, 语法格式如下:
+   std::shared_ptr<T> 智能指针名字(创建堆内存);
+   ```
+
+2. **通过std::make_shared初始化**
+
+   ```c++
+   //T：模板参数的数据类型
+   //Args&&... args ：要初始化的数据，如果是通过 make_shared 创建对象，需按照构造函数的参数列表指定
+   template< class T, class... Args >
+   shared_ptr<T> make_shared( Args&&... args );
+   ```
+
+3. **通过reset方法初始化**
+
+   ```c++
+   void reset() noexcept;
+   
+   template< class Y >
+   void reset( Y* ptr );
+   
+   template< class Y, class Deleter >
+   void reset( Y* ptr, Deleter d );
+   
+   template< class Y, class Deleter, class Alloc >
+   void reset( Y* ptr, Deleter d, Alloc alloc );
+   
+   //ptr：指向要取得所有权的对象的指针
+   //d：指向要取得所有权的对象的指针
+   //aloc：内部存储所用的分配器
+   ```
+
+   
+
+   ```c++
+   //构造函数
+   std::shared_ptr<int> ptr1{new int{100}};		//初始化列表
+   std::shared_ptr<int> ptr2 = ptr1;				//拷贝构造
+   std::shared_ptr<int> ptr3{std::move(ptr2)};		//移动构造
+   std::shared_ptr<int> ptr4 = std::move(ptr2);	//移动构造
+   
+   //make_shared
+   std::shared_ptr<int> ptr5 = make_shared<int> (100);
+   Person p;
+   std::shared_ptr<Person> ptr6 = make_shared<Person> (p);
+   
+   //reset
+   std::shared_ptr<int> ptr7;
+   ptr7.reset(new int(111));
+   std::shared_ptr<int> ptr8 = ptr7;
+   cout<<ptr7.use_count()<<endl;					//2
+   cout<<ptr8.use_count()<<endl;					//2
+   
+   ptr7.reset();									//new int(111)对应内存的引用计数-1；
+   cout<<ptr7.use_count()<<endl;					//0
+   cout<<ptr8.use_count()<<endl;					//1
+   ```
+
+   *对于一个未初始化的共享智能指针，可以通过 **reset** 方法来初始化，当智能指针中有值的时候，调用 **reset** 会使引用计数减 1*
+
+
+
+
+#### 19.1.2 shared_ptr的方法
+
+shared_ptr模板类提供的方法
+
+* **std::shared_ptr::use_count()**
+
+  通过use_count()可以查看到当前有多少个智能指针同时管理一个内存资源
+
+* **std::shared_ptr::reset()**
+
+  根据参数的不同，重载reset()方法，不传入参数时，对当前的共享指针重置，use_count()的计数-1
+
+* **std::shared_ptr::get()**
+
+  对应基础数据类型来说，通过操作智能指针和操作智能指针管理的内存效果是一样的，可以直接完成数据的读写。但是如果共享智能指针管理的是一个对象，那么就需要取出原始内存的地址再操作，可以调用共享智能指针类提供的 get () 方法得到原始地址
+
+```c++
+//std::shared_ptr::use_count()
+//long use_count() const noexcept;		//函数原型
+std::shared_ptr<int> p1{new int{100}};
+std::shared_ptr<int> p2{p1};
+cout<<p1.use_count()<<endl;
+
+//std::shared_ptr::reset()
+std::shared_ptr<int> p3 = p1;
+p3.reset();
+
+//std::shared_ptr::get()
+//T* get() const noexcept;			//原型
+cout<<p1.get()<<endl;
+cout<<p2.get()<<endl;				//p1.get()和p2.get()的值相同
+```
+
+
+
+#### 19.1.3 指定删除器
+
+**在 C++11 中使用 `shared_ptr` 管理动态数组时，需要指定删除器，因为 `std::shared_ptr`的默认删除器不支持数组对象**
+
+* 删除器可以是`lambda`表达式
+
+  ```c++
+  shared_ptr<int> ptr(new int[10], [](int* p) {delete[]p; });
+  ```
+
+  
+
+* 删除器可以用`std::default_delete<T>()`
+
+  ```c++
+  shared_ptr<int> ptr(new int[10], default_delete<int[]>());
+  ```
+
+  
+
+* 可以自己封装一个模板函数，让`shared_ptr`支持数组
+
+```c++
+#include <iostream>
+#include <memory>
+using namespace std;
+
+template <typename T>
+shared_ptr<T> make_share_array(size_t size)
+{
+    // 返回匿名对象
+    return shared_ptr<T>(new T[size], default_delete<T[]>());
+}
+
+int main()
+{
+    shared_ptr<int> ptr1 = make_share_array<int>(10);
+    cout << ptr1.use_count() << endl;
+    shared_ptr<char> ptr2 = make_share_array<char>(128);
+    cout << ptr2.use_count() << endl;
+    return 0;
+}
+```
+
+
+
+**在C++ 14以后，可以不指定删除器，直接使用shared_ptr管理动态数组**
+
+```c++
+shared_ptr<int[]> ptr(new int[5]);			//在模板列表中，要指定为一个数组类型：<int[]>
+```
+
+
+
+### 19.2 unique_ptr
+
+std::unique_ptr 是一个独占型的智能指针，它不允许其他的智能指针共享其内部的指针
+
+
+
+#### 19.2.1 初始化方式
+
+1. **通过构造函数**
+
+   不能通过拷贝构造一个unique_ptr对象初始化
+
+2. **通过reset()方法初始化**
+
+   ```c++
+   //构造和移动构造
+   std::unique_ptr<int> ptr1(new int(100));					
+   //std::unique_ptr<int> ptr2 = ptr1;				//error
+   std::unique_ptr<int> ptr3 = std::move(ptr1);
+   
+   //reset()
+   std::unique_ptr<int> ptr5;
+   ptr5.reset(new int(111));
+   ```
+
+
+
+#### 19.2.2 unique_ptr的方法
+
+* **std::unique_ptr::get()**
+* **std::unique_ptr::reset()**
+* **没有use_count()方法，unique_ptr是独占的，计数本身就为1；**
+
+
+
+#### 19.2.3 指定删除器
+
+* 删除器可以是lambda表达式
+
+  
+
+  unique_ptr 指定删除器和 shared_ptr 指定删除器是有区别的，unique_ptr 指定删除器的时候需要确定删除器的类型，所以不能像 shared_ptr 那样直接指定删除器
+
+  ```
+  shared_ptr<int> ptr1(new int(10), [](int*p) {delete p; });	// ok
+  unique_ptr<int> ptr1(new int(10), int*p {delete p; });	// error
+  ```
+
+  
+
+  ```c++
+  using func_ptr = void(*)(int*);
+  unique_ptr<int, func_ptr> ptr1(new int(10), [](int*p) {delete p; });
+  
+  // lambda表达式有捕获列表，不能视为函数指针
+  unique_ptr<int, func_ptr> ptr1(new int(10), [&](int*p) {delete p; });				//error
+  unique_ptr<int, function<void(int*)>> ptr1(new int(10), [&](int*p) {delete p; });	//通过std::function<>包装
+  ```
+
+
+
+* **在C++ 14以后，可以不指定删除器，直接使用unique_ptr管理动态数组**
+
+  ```C++
+  std::unique_ptr<int[]> ptr(new int[3]);					//在模板列表中，要指定为一个数组类型：<int[]>
+  ```
+
+  
+
+### 19.3 weak_ptr
+
+弱引用智能指针 `std::weak_ptr` 可以看做是 `shared_ptr` 的助手，它不管理 `shared_ptr` 内部的指针。`std::weak_ptr` **没有重载操作符 * 和 ->**，因为它不共享指针，不能操作资源，所以它的**构造不会增加引用计数，析构也不会减少引用计数**，它的主要作用就是作为一个旁观者监视 shared_ptr 中管理的资源是否存在
+
+
+
+#### 19.3.1 初始化方式
+
+​	通过构造函数
+
+```c++
+std::shared_ptr<int> ptr1{new int{100}};
+
+std::weak_ptr<int> wp1;
+std::weak_ptr<int> wp2 = ptr1;
+std::weak_ptr<int> wp3{ptr1};
+std::weak_ptr<int> wp4{wp3};
+```
+
+
+
+#### 19.3.2 weak_ptr方法
+
+* **std::weak_ptr::use_count()**
+
+  通过调用 std::weak_ptr 类提供的 use_count() 方法可以获得当前所观测资源的引用计数，函数原型如下：
+
+  ```c++
+  // 函数返回所监测的资源的引用计数
+  long int use_count() const noexcept;
+  ```
+
+  
+
+* **std::weak_ptr::reset()**
+
+  通过调用 std::weak_ptr 类提供的 reset() 方法来清空对象，使其不监测任何资源，函数原型如下：
+
+  ```c++
+  void reset() noexcept;
+  ```
+
+  
+
+* **std::weak_ptr::expired()**
+
+  通过调用 std::weak_ptr 类提供的 expired() 方法来判断观测的资源是否已经被释放，函数原型如下：
+
+  ```c++
+  // 返回true表示资源已经被释放, 返回false表示资源没有被释放
+  bool expired() const noexcept;
+  ```
+
+  
+
+* **std::weak_ptr::lock()**
+
+  通过调用 std::weak_ptr 类提供的 lock() 方法来获取管理所监测资源的 shared_ptr 对象，函数原型如下：
+
+  ```c++
+  shared_ptr<element_type> lock() const noexcept;
+  ```
+
+
+
+```c++
+std::shared_ptr<int> ptr1{new int{100}};
+std::shared_ptr<int> ptr2 = ptr1;
+
+std::weak_ptr<int> wp1;
+std::weak_ptr<int> wp2 = ptr1;
+std::weak_ptr<int> wp3{ptr1};
+std::weak_ptr<int> wp4{wp3};
+
+std::cout<<ptr1.use_count()<<std::endl;										//2
+std::cout<<wp1.use_count()<<std::endl;										//0
+std::cout<<wp3.use_count()<<std::endl;										//2
+std::cout<<wp4.use_count()<<std::endl;										//2
+
+std::cout<<(wp3.expired() == 1 ? "ture" : "false")<<std::endl;				//ture
+wp3.reset();
+std::cout<<(wp3.expired() == 1 ? "ture" : "false")<<std::endl;				//false
+
+ptr2.reset();
+std::cout<<ptr1.use_count()<<std::endl;										//1
+ptr2 = wp2.lock();
+std::cout<<ptr1.use_count()<<std::endl;										//2
+```
+
+
+
+### 19.4 shared_ptr的注意事项
+
+1. **不能使用一个原始地址初始化多个shared_ptr**
+
+   ```c++
+   int *p = new int(100);
+   std::shared_ptr<int> ptr1(p);
+   //std::shared_ptr<int> ptr2(p);       //error
+   ```
+
+
+
+2. **返回管理 this 的 shared_ptr**
+
+   ```c++
+   class Person
+   {
+   public:
+       std::shared_ptr<Person> func()
+       {
+           return std::shared_ptr<Person>(this);
+       }
+   };
+   
+   int main()
+   {
+       std::shared_ptr<Person> ptr1{new Person()};
+       //std::shared_ptr<Person> ptr2 = ptr1->func();			//error
+   }
+   ```
+
+   通过输出的结果可以看到一个对象被析构了两次，其原因是这样的：在这个例子中使用同一个指针 this 构造了两个智能指针对象 ptr1 和 ptr2，这二者之间是没有任何关系的，因为 ptr2 并不是通过 ptr1 初始化得到的实例对象。在离开作用域之后 this 将被构造的两个智能指针各自析构，导致重复析构的错误。
+
+   
+
+   通过 weak_ptr 来解决，通过 wek_ptr 返回管理 this 资源的共享智能指针对象 shared_ptr。C++11 中为我们提供了一个模板类叫做 std::enable_shared_from_this<T>，这个类中有一个方法叫做 shared_from_this()，通过这个方法可以返回一个共享智能指针，在函数的内部就是使用 weak_ptr 来监测 this 对象，并通过调用 weak_ptr 的 lock() 方法返回一个 shared_ptr 对象。
+
+   ```c++
+   class Person : public std::enable_shared_from_this<Person>
+   {
+   public:
+       std::shared_ptr<Person> func2()
+       {
+           return shared_from_this();
+       }
+   };
+   
+   int main()
+   {
+       std::shared_ptr<Person> ptr1{new Person()};
+       std::shared_ptr<Person> ptr3 = ptr1->shared_from_this();			//OK
+   }
+   ```
+
+   **注意**：*在调用 enable_shared_from_this 类的 shared_from_this () 方法之前，必须要先初始化函数内部 weak_ptr 对象，否则该函数无法返回一个有效的 shared_ptr 对象（具体处理方法可以参考上面的示例代码）*
+
+   
+
+3. **shared_ptr不能循环引用**
+
+   把其中一个`shared_ptr`更改为`weak_ptr`就可以解决循环引用的问题
+
+
+
+
+
+
+
+
+
+## 20 variadic_template
+
+可变模版参数
+
+可变参数模板和普通模板的语义是一样的，只是写法上稍有区别，声明可变参数模板时需要在`typename`或`class`后面带上省略号“...”。比如我们常常这样声明一个可变模版参数：`template<typename...>`或者`template<class...>`
+
+```c++
+//可变参数模板
+template <class... T>
+void f(T... args);
+```
+
+
+
+**在函数模板中使用**
+
+在函数模板中，可变参数模板最常见的使用场景是：***以递归的方法取出可用参数***
+
+其中`void print(){}`表示递归结束，就是处理最后情况，如果不写会出现编译错误
+
+`sizeof...(args)`获得`args`的参数个数
+
+```c++
+void print() {}
+
+template<typename T, typename... Types>
+void print(const T& firstArg, const Types&... args) {
+	std::cout << firstArg << " " << sizeof...(args) << std::endl;
+	print(args...);
+}
+```
+
+
+
+**在类模板中使用**
+
+```c++
+template<typename ...T>
+class mytuple;
+
+//偏特化版本
+template<typename HEAD, typename ...TLIST>
+class mytuple<HEAD, TLIST...> : public mytuple<TLIST...>
+{
+public:
+    mytuple(HEAD head, TLIST... args) : mytuple<TLIST...>(args...), value(head){}
+    HEAD value;
+};
+
+//结束条件，特化版本
+template<>
+class mytuple<>{};
+```
+
+
+
+### 
 
